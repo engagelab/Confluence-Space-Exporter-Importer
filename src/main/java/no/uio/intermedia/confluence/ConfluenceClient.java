@@ -1,14 +1,12 @@
 package no.uio.intermedia.confluence;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
@@ -82,7 +80,7 @@ public class ConfluenceClient {
 	
 	private void exportSpace(String spaceKey) throws ConfluenceException, SwizzleException {
 		this.spaceKey = spaceKey;
-		System.out.println("Starting space export....\n");
+		System.out.println("Starting space export....zipping up\n");
 		
 		String downloadUrl = confluence.exportSpace(spaceKey, "TYPE_XML");
 		
@@ -97,8 +95,7 @@ public class ConfluenceClient {
 			e.printStackTrace();
 		}
 		
-		System.out.println("Space export finished.");
-		this.programExit();
+	
 		
 	}
 	
@@ -112,8 +109,7 @@ public class ConfluenceClient {
 			  		URLConnection uc = u.openConnection();
 			  		String contentType = uc.getContentType();
 			  		int contentLength = uc.getContentLength();
-			  		// if (contentType.startsWith("text/") || contentLength == -1) {
-			  		// test
+			  		
 			  		InputStream raw = uc.getInputStream();
 			  		InputStream in = new BufferedInputStream(raw);
 			  		byte[] data = new byte[contentLength];
@@ -151,6 +147,8 @@ public class ConfluenceClient {
 			  		
 			  		
 			  		System.out.print(animationChars[0] + " done file downloaded!");
+			  		System.out.println("Space export finished.");
+					programExit();
 			      }
 			    
 			    catch (IOException e) {
