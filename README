@@ -1,0 +1,15 @@
+
+Usage for exporter-importer
+
+exports a space
+
+-c export -k spacekey -u username -p password -url  http://confluenceInstanceUrl
+
+import a space into a confluence instance
+
+-c import -u username -p password -url http://confluenceInstanceUrl -f /full path to zip/some.zip
+
+replace a string in the entities.xml
+
+-c replace -p patternString -r replacementString -f /full path to zip/some.zip
+
