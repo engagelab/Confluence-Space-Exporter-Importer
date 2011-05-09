@@ -41,6 +41,7 @@ public class ConfluenceClient {
 
 	private static final String ENTITIES_XML = "entities.xml";
 	private static final int _1000 = 1000;
+	
 	public boolean isDOWNLOADING = false;
 	public int timeCountArchiveServer = 0;
 	public int timeCountDownFromServer = 0;
@@ -65,6 +66,9 @@ public class ConfluenceClient {
 
 	private static final String spaceKeyOption = "k";
 
+	private static final String directoryOption = "d";
+
+	
 	char[] animationChars = new char[] { '|', '=', '/', '-', '\\' };
 	
 	private ConfluenceConnector confluence;
@@ -314,7 +318,7 @@ public class ConfluenceClient {
 		
         Options opt = new Options();
 
-        opt.addOption(commandOption,true, "The command to perform: import | export.");
+        opt.addOption(commandOption,true, "The command to perform: import | export | unzip | zip.");
         opt.addOption(spaceKeyOption,true, "The confluence space key.");
         opt.addOption(usernameOption,true, "The username to use.");
         opt.addOption(passwordOption,true, "The password");
@@ -324,6 +328,8 @@ public class ConfluenceClient {
         opt.addOption(patternOption,true, "String that needs replaced");
         opt.addOption(replaceOption,true, "Replacement String");
         opt.addOption(fileOption,true, "file");
+        opt.addOption(directoryOption ,true, "directory to zip");
+        
 
         BasicParser parser = new BasicParser();
         CommandLine commandLine;
@@ -350,8 +356,42 @@ public class ConfluenceClient {
 	    		String pattern;
 	    		String replacementString;
 	    		String fileName;
+	    		String directoryPath;
 	    		
-	    		if(command !=  null && command.equals("import") ) {
+	    		
+	    		if( command != null && command.equals("zip")) {
+	    			
+	    			if( commandLine.getOptionValue(directoryOption) != null ) {
+	    				directoryPath = commandLine.getOptionValue(directoryOption);
+	    			} else {
+	    				System.out.println("Missing directory path -" + directoryOption +" example: /user/home/files");
+	    				return;
+	    			}
+	    			
+	    			if( commandLine.getOptionValue(fileOption) != null ) {
+	    				fileName = commandLine.getOptionValue(fileOption);
+	    			} else {
+	    				System.out.println("Missing filename -" + fileOption );
+	    				return;
+	    			}
+	    			
+	    				FileUtils.compressFile(fileName, directoryPath);
+	    				
+	    				
+	    				
+	    		} else if(command !=  null && command.equals("unzip") ) {
+	    			
+	    			if( commandLine.getOptionValue(fileOption) != null ) {
+	    				fileName = commandLine.getOptionValue(fileOption);
+	    			} else {
+	    				System.out.println("Missing filename -" + fileOption );
+	    				return;
+	    			}
+	    			
+	    			ArchiveCompression da = new ArchiveCompression(fileName, StringUtils.remove(fileName, ".zip"));
+    				da.decompressArchive();
+    				
+	    		} else if(command !=  null && command.equals("import") ) {
 	    			
 	    			if( commandLine.getOptionValue(usernameOption) != null ) {
 	    				userName = commandLine.getOptionValue(usernameOption);

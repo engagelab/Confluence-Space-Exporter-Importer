@@ -36,7 +36,8 @@ public class ArchiveCompression {
 	}
 
 	public File decompressArchive() throws IOException, ArchiveException {
-
+		System.out.println("extracting file: " + zipPath);
+		
 		final InputStream is = new FileInputStream(zipPath);
 		ArchiveInputStream in = new ArchiveStreamFactory()
 				.createArchiveInputStream("zip", is);
@@ -64,11 +65,13 @@ public class ArchiveCompression {
 
 		in.close();
 		
+		System.out.println("extracting finished!");
+		
 		return new File(destPath);
 	}
 
 	public void compressArchive() throws ArchiveException, IOException {
-		
+		System.out.println("stating compression.....for " + zipPath);
 		//unix it!
         destPath = destPath.replaceAll("\\\\", "/");
 		
@@ -101,6 +104,7 @@ public class ArchiveCompression {
 		os.finish();
 //		out.close();
 //		os.close();
+		System.out.println("finished!");
 	}
 
 }

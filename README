@@ -9,6 +9,12 @@ replace a string in the entities.xml
 import a space into a confluence instance
 -c import -u username -p password -url http://confluenceInstanceUrl -f /full path to zip/some.zip
 
+quick zip utility
+-c zip -d /Users/bob/temp -f temp2011.zip
+
+quick unzip utility
+-c unzip -f /Users/bob/temp2011.zip
+
 add  -Xms512m -Xmx1024m to run.sh if there is a java heap problem.
 
 import of large spaces are better handed with the confluence backup restore feature under:
