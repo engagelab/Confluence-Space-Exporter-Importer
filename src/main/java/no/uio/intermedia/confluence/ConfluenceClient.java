@@ -1,25 +1,17 @@
 package no.uio.intermedia.confluence;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.TimeZone;
 
 import no.uio.intermedia.confluence.utils.ArchiveCompression;
 import no.uio.intermedia.confluence.utils.FileUtils;
-import no.uio.intermedia.confluence.utils.HttpClientHelper;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -29,17 +21,17 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.log4j.Logger;
-import org.codehaus.swizzle.confluence.BlogEntry;
-import org.codehaus.swizzle.confluence.BlogEntrySummary;
 import org.codehaus.swizzle.confluence.ConfluenceException;
 import org.codehaus.swizzle.confluence.SwizzleException;
 
 /**
- * Command line client that exports blog posts a confluence instance
+ * Command line client
  * 
- * using swizzle:
+ * 1. Has the ability to export a space with blog posts.
+ * 2. Has the ability to rename a spacekey in an exported space archive
+ * 3. Has the ability to import a space from an archive into an instance. 
+ * 
+ * Using swizzle:
  * http://swizzle.codehaus.org/swizzle-confluence/
  * 
  * @author anthonjp
@@ -73,17 +65,13 @@ public class ConfluenceClient {
 
 	private static final String spaceKeyOption = "k";
 
-	Logger  logger = Logger.getLogger(ConfluenceClient.class);
-	
 	char[] animationChars = new char[] { '|', '=', '/', '-', '\\' };
 	
-	private ConfluenceRedux confluence;
+	private ConfluenceConnector confluence;
 
 	private String username;
 	private String password;
 	private String spaceKey;
-	private Date startExportDate;
-	private Date endExportDate;
 	 
 	public ConfluenceClient() {
 		
@@ -109,9 +97,9 @@ public class ConfluenceClient {
 		}
 
 		String endpoint = url + "/rpc/xmlrpc";
-		logger.info("url endpoint: " + endpoint);
+		System.out.println("url endpoint: " + endpoint);
 
-		confluence = new ConfluenceRedux(endpoint);
+		confluence = new ConfluenceConnector(endpoint);
 		confluence.login(username, password);
 	}
 
@@ -123,13 +111,38 @@ public class ConfluenceClient {
 	 * @throws ConfluenceException
 	 * @throws SwizzleException
 	 */
-	public void importSpace(String zipFileName) throws IOException, ConfluenceException, SwizzleException {
+	public void importSpace(final String zipFileName) throws IOException, ConfluenceException, SwizzleException {
 		
-		System.out.println("doing import....");
-		InputStream ios = new FileInputStream(zipFileName);
-		byte[] fileByte = IOUtils.toByteArray(ios);
-		confluence.importSpace(fileByte);
-		System.out.println("import finished!");
+		
+	new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				System.out.println("doing import....");
+				InputStream ios;
+				try {
+					ios = new FileInputStream(zipFileName);
+					byte[] fileByte = IOUtils.toByteArray(ios);
+					confluence.importSpace(fileByte);
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ConfluenceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SwizzleException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				System.out.println("import finished!");
+					isDOWNLOADING = false;
+					
+			}
+		}).start();
 		
 	}
 	
@@ -186,38 +199,7 @@ public class ConfluenceClient {
 	 */
 	private void exportSpace(final String spaceKey) throws ConfluenceException, SwizzleException {
 		this.spaceKey = spaceKey;
-		System.out.println("Starting space export....archiving (.zip) up on server..\n");
-		
-//		Thread downLoadThread = new Thread(new Runnable() {
-//			
-//			@Override
-//			public void run() {
-//				isDOWNLOADING = true;
-//				
-//
-//		  		System.out.print(animationChars[0]);
-//		  		
-//		  	   
-////				while(isDOWNLOADING) {
-////					try {
-////						System.out.print(animationChars[1]);
-////						timeCountArchiveServer = timeCountArchiveServer + _1000;
-////						Thread.sleep(_1000);
-////					} catch (InterruptedException e) {
-////						// TODO Auto-generated catch block
-////						e.printStackTrace();
-////					}
-////					
-////				}
-//			
-//				
-//			}
-//		});
-//		
-//		downLoadThread.start();
-		
-		
-		
+		System.out.println("Starting space export....archiving (.zip) up on server..Depending on the size of the space, this could take a while.\n");
 		
 		new Thread(new Runnable() {
 			
@@ -233,9 +215,13 @@ public class ConfluenceClient {
 					e1.printStackTrace();
 				} finally {
 					isDOWNLOADING = false;
-					downloadUrl = downloadUrl.concat("?os_username=" + username + "&os_password=" + password);
-					System.out.print(animationChars[0]);
-					System.out.println(" done file exported on server!");
+					if( downloadUrl == null) {
+						System.out.println("ERROR: Server did not return downloadable archive.");
+					} else {
+						downloadUrl = downloadUrl.concat("?os_username=" + username + "&os_password=" + password);
+						System.out.print(animationChars[0]);
+						System.out.println(" done file exported on server!");
+					}
 					
 				}
 				
@@ -267,11 +253,10 @@ public class ConfluenceClient {
 			  public void run() {
 			    try {
 			    	
-			    	
-			    	
 			    	SimpleDateFormat df = new SimpleDateFormat("yyMMddHHmmssZ");
 			  		String format = df.format(new Date());
-			  		String fileName = spaceKey + "-"+ format + "-xml.zip";
+			  		long currentTimeMillis = System.currentTimeMillis();
+			  		String fileName = spaceKey  + "-xml.zip";
 			    	
 			    	
 			    	System.out.println("\n\nDownloading zip from url: " + StringUtils.substring(downloadUrl,0, downloadUrl.indexOf("?")));	
@@ -310,7 +295,8 @@ public class ConfluenceClient {
 	 */
 	public void programExit() {
 		try {
-			confluence.logout();
+			if( confluence != null )
+				confluence.logout();
 		} catch (ConfluenceException e) {
 			e.printStackTrace();
 		} catch (SwizzleException e) {
@@ -319,31 +305,6 @@ public class ConfluenceClient {
 		System.out.println("Program exited successfully.");
 	}
 
-	private void getBlogPosts(String spaceKey) throws ConfluenceException, SwizzleException {
-		
-		
-		List blogEntries = confluence.getBlogEntries(spaceKey);
-		
-		
-		
-		logger.info("list  " + blogEntries);
-		
-		for (Iterator iterator = blogEntries.iterator(); iterator.hasNext();) {
-			BlogEntrySummary blogEntrySummary = (BlogEntrySummary) iterator.next();
-			
-			BlogEntry blogEntry = confluence.getBlogEntry(blogEntrySummary.getId());
-			
-			logger.info("blog entry: " + blogEntry.getContent());
-			
-			logger.info("comments: " + confluence.getComments(blogEntry.getId()));
-			
-			logger.info("attachments: " + confluence.getAttachments(blogEntry.getId()));
-			
-			
-			
-		}
-	}
-	
 	/**
 	 * takes command line args
 	 * 
@@ -516,13 +477,6 @@ public class ConfluenceClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
-        
-        
-		
-		    
-	     
-		
 	      
 
 	}

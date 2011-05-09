@@ -7,10 +7,15 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.io.IOUtils;
 
+/**
+ * FileUtils
+ * 
+ * @author anthonjp
+ *
+ */
 public class FileUtils {
 
 	public static File[] findFile(String directoryPath, String fileName) {

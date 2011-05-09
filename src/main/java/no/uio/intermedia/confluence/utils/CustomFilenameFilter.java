@@ -3,6 +3,12 @@ package no.uio.intermedia.confluence.utils;
 import java.io.File;
 import java.io.FilenameFilter;
 
+/**
+ * Filter for finding a file in directory
+ * 
+ * @author anthonjp
+ *
+ */
 public class CustomFilenameFilter implements FilenameFilter {
 
 	private String pattern;

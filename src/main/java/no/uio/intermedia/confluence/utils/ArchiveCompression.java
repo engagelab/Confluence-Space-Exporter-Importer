@@ -18,7 +18,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang.StringUtils;
 
-
+/**
+ * Does the archiving and dearchiving of a path
+ * 
+ * @author anthonjp
+ *
+ */
 public class ArchiveCompression {
 
 	private String destPath;
